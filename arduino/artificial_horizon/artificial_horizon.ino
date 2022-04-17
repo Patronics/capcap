@@ -84,7 +84,7 @@ void loop(void)
   u8g2.clearBuffer();
   //u8g2.print("Average = ");
   //u8g2.drawStr(0,10,(char*) String(average).c_str());   //write a number for debugging
-  u8g2.drawCircle(64+(yCoord/25),32-(zCoord/30),5);
+  u8g2.drawCircle(64+(yCoord/25),32+(zCoord/30),5);
   u8g2.drawCircle(64,32,1);
   //u8g2.drawTriangle(20,20,20,100,100, 100-average);
   //u8g2.drawStr(100,10,String());
