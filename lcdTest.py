@@ -10,6 +10,7 @@ lcd.clear()
 
 lcd.cursor_pos = (0, 0)
 
-lcd.write_string('Raspberry Pi HD44780')
+lcd.write_string('HackDavis 2022')
 lcd.cursor_pos = (1, 0)
-lcd.write_string('https://github.com/\n\rdbrgn/RPLCD')
+lcd.write_string('tell me your secrets or something')
+GPIO.cleanup()
