@@ -41,3 +41,6 @@ cd models
 
 wget https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
 wget https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
+
+
+echo "configure twilio environment variables according to the instructions at https://www.twilio.com/docs/usage/secure-credentials before use. Or remove the -t option from start.sh to disable twilio integration"

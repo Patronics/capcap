@@ -3,6 +3,7 @@ import time, logging
 import atexit
 from datetime import datetime
 import threading, collections, queue, os, os.path
+from collections import deque
 import stt
 import numpy as np
 import pyaudio
@@ -27,6 +28,8 @@ lcd.clear()
 
 lcd.cursor_pos = (0, 0)
 logging.basicConfig(level=20)
+
+
 
 class Audio(object):
     """Streams raw audio from microphone. Data is received in a separate thread, and stored in a buffer, to be read from."""
@@ -171,13 +174,17 @@ class VADAudio(Audio):
 def main(ARGS):
     #activate twilio api for reminders
     if ARGS.twilio:
-        twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
-        twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
-        twilio_from_number = os.environ['TWILIO_FROM_NUMBER']
-        twilio_to_number = os.environ['TWILIO_TO_NUMBER']
-        client = Client(twilio_account_sid, twilio_auth_token)
+        try:
+            twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
+            twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
+            twilio_from_number = os.environ['TWILIO_FROM_NUMBER']
+            twilio_to_number = os.environ['TWILIO_TO_NUMBER']
+            client = Client(twilio_account_sid, twilio_auth_token)
+            twilio_error = False
 
-
+        except KeyError:
+            print("error: twilio environment variables not found, configure twilio.env as described at https://www.twilio.com/docs/usage/secure-credentials")
+            twilio_error = True
     # Load STT model
 
     if os.path.isdir(ARGS.model):
@@ -199,6 +206,9 @@ def main(ARGS):
                          file=ARGS.file)
     print("Listening (ctrl-C to exit)...")
     frames = vad_audio.vad_collector()
+    twilio_max_message_segments = 3  #each message segment costs 0.75 cents to send
+    twilio_long_message_max = twilio_max_message_segments * 152 - 56  #up to 250 characters will use 2 sms segments plus the 53 character preface message
+    message_history = deque(maxlen=twilio_long_message_max)
 
     lcd.write_string("Hello HackDavis 2022!   CaptionCap listening...")
 
@@ -225,12 +235,27 @@ def main(ARGS):
             text = stream_context.finishStream()
             print("Recognized: %s" % text)
             if(ARGS.twilio and text.startswith('remind me')):
-                text=text[9:]
-                print("sending twilio reminder: %s" % text)
-                message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body="reminder from capcap: "+text)
+                text=text[10:]
+                if(twilio_error):
+                    print("error, twilio disbled, configure env")
+                    print("error: twilio environment variables not found, configure twilio.env as described at https://www.twilio.com/docs/usage/secure-credentials")
+                    text='twilio env error'
+                else:
+                    print("sending twilio reminder: %s" % text)
+                    message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body="reminder from capcap: "+text)
+            elif(ARGS.twilio and (text.startswith('archive') or text.startswith('archie'))):
+                text=text[7:]
+                if(twilio_error):
+                    print("error, twilio disbled, configure env")
+                    print("error: twilio environment variables not found, configure twilio.env as described at https://www.twilio.com/docs/usage/secure-credentials")
+                    text='twilio env error'
+                else:
+                    print("sending twilio archive %s" % message_history)
+                    message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body="archive from capcap: "+''.join(message_history))
 
             if(len(text)>16 or (len(text)> 0 and (len(text)+current_length)) > 35):
                 lcd.clear()
+                message_history.extend(text)
                 lcd.write_string("%s" % text)
                 current_length = len(text)
 
@@ -238,7 +263,10 @@ def main(ARGS):
                 current_length += len(text) + 2
                 if current_length>0:
                     lcd.write_string("  ")
+                message_history.extend("  ")
                 lcd.write_string("%s" % text)
+                message_history.extend(text)
+
             if ARGS.keyboard:
                 from pyautogui import typewrite
                 typewrite(text)
