@@ -15,6 +15,10 @@ a \
 ' -e ':a' -e '$!{n;ba};}' ~/.profile
 echo 'eval "$(pyenv init --path)"' >>~/.profile
 
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+
+exec $SHELL
 
 pyenv update
 
