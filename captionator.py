@@ -26,7 +26,6 @@ lcd = CharLCD(pin_rs=15, pin_rw=18, pin_e=16, pins_data=[21, 22, 23, 24],
 lcd.clear()
 
 lcd.cursor_pos = (0, 0)
-
 logging.basicConfig(level=20)
 
 class Audio(object):
@@ -170,7 +169,7 @@ class VADAudio(Audio):
                     ring_buffer.clear()
 
 def main(ARGS):
-    # Load STT model
+    #activate twilio api for reminders
     if ARGS.twilio:
         twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
         twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
@@ -179,6 +178,7 @@ def main(ARGS):
         client = Client(twilio_account_sid, twilio_auth_token)
 
 
+    # Load STT model
 
     if os.path.isdir(ARGS.model):
         model_dir = ARGS.model
@@ -200,12 +200,16 @@ def main(ARGS):
     print("Listening (ctrl-C to exit)...")
     frames = vad_audio.vad_collector()
 
+    lcd.write_string("Hello HackDavis 2022!   CaptionCap listening...")
+
+
     # Stream from microphone to STT using VAD
     spinner = None
     if not ARGS.nospinner:
         spinner = Halo(spinner='line')
     stream_context = model.createStream()
     wav_data = bytearray()
+    current_length = 100 # overwrite welcome message with whatever is heard
     for frame in frames:
         if frame is not None:
             if spinner: spinner.start()
@@ -221,13 +225,18 @@ def main(ARGS):
             text = stream_context.finishStream()
             print("Recognized: %s" % text)
             if(ARGS.twilio and text.startswith('remind me')):
+                text=text[9:]
                 print("sending twilio reminder: %s" % text)
-                message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body=text)
-            if(len(text)>14):
+                message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body="reminder from capcap: "+text)
+
+            if(len(text)>14 or (len(text)> 0 and (len(text)+current_length)) > 30):
                 lcd.clear()
                 lcd.write_string("%s" % text)
+                current_length = len(text)
+
             elif(len(text)>0):
-                lcd.write_string(" %s" % text)
+                current_length += len(text) + 2
+                lcd.write_string("  %s" % text)
             if ARGS.keyboard:
                 from pyautogui import typewrite
                 typewrite(text)
