@@ -229,14 +229,16 @@ def main(ARGS):
                 print("sending twilio reminder: %s" % text)
                 message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body="reminder from capcap: "+text)
 
-            if(len(text)>14 or (len(text)> 0 and (len(text)+current_length)) > 30):
+            if(len(text)>16 or (len(text)> 0 and (len(text)+current_length)) > 35):
                 lcd.clear()
                 lcd.write_string("%s" % text)
                 current_length = len(text)
 
             elif(len(text)>0):
                 current_length += len(text) + 2
-                lcd.write_string("  %s" % text)
+                if current_length>0:
+                    lcd.write_string("  ")
+                lcd.write_string("%s" % text)
             if ARGS.keyboard:
                 from pyautogui import typewrite
                 typewrite(text)
