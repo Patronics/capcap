@@ -35,3 +35,9 @@ pip install stt-1.3.0-cp37-cp37m-linux_armv7l.whl
 pip install -r requirements.txt
 
 
+mkdir models
+cd models
+
+
+wget https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
+wget https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
