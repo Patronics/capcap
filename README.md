@@ -16,3 +16,5 @@ We used a Raspberry Pi 4, coqui.ai speech recognition, and a 24x2 character lcd 
 
 ## What's next for CaptionHat
 Migrating to a more elegant form factor is a priority, probably something more like google glass. Improving the screen's resolution in the process, so we can fit more text on screen at once. 
+
+We also want to add the ability to do real-time translation between languages, drastically increasing the benefit to many people worldwide.
