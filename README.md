@@ -2,6 +2,8 @@ Created for Hackdavis2022
 
 uses coqui STT to create live captions for the real world.
 
+https://devpost.com/software/captionhat
+
 ## Inspiration
 Those who are hard of hearing or deaf often struggle to communicate with others, even when they learn to lipread, it's not easy, and often difficult to understand. Many causes of hearing loss also cause an impaired sense of balance.
 ## What it does
