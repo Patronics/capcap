@@ -24,6 +24,9 @@ pyenv global 3.7.13
 #wget https://github.com/coqui-ai/STT/releases/download/v1.3.0/stt-1.3.0-cp37-cp37m-linux_aarch64.whl
 #pip install stt-1.3.0-cp37-cp37m-linux_aarch64.whl
 #adjust above as needed for architecture, above is 64 bit, 32 bit may be needed instead
+wget https://github.com/coqui-ai/STT/releases/download/v1.3.0/stt-1.3.0-cp37-cp37m-linux_armv7l.whl
+pip install stt-1.3.0-cp37-cp37m-linux_armv7l.whl
+
 
 pip install -r requirements.txt
 
