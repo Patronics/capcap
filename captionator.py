@@ -205,8 +205,11 @@ def main(ARGS):
                 wav_data = bytearray()
             text = stream_context.finishStream()
             print("Recognized: %s" % text)
-            lcd.clear()
-            lcd.write_string("%s" % text)
+            if(len(text)>14):
+                lcd.clear()
+                lcd.write_string("%s" % text)
+            elif(len(text)>0):
+                lcd.write_string(" %s" % text)
             if ARGS.keyboard:
                 from pyautogui import typewrite
                 typewrite(text)
