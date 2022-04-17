@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import time, logging
+import atexit
 from datetime import datetime
 import threading, collections, queue, os, os.path
 import stt
@@ -13,7 +14,9 @@ from scipy import signal
 from RPLCD.gpio import CharLCD
 from RPi import GPIO
 
+import os
 from twilio.rest import Client
+
 
 
 lcd = CharLCD(pin_rs=15, pin_rw=18, pin_e=16, pins_data=[21, 22, 23, 24],
@@ -168,6 +171,15 @@ class VADAudio(Audio):
 
 def main(ARGS):
     # Load STT model
+    if ARGS.twilio:
+        twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
+        twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
+        twilio_from_number = os.environ['TWILIO_FROM_NUMBER']
+        twilio_to_number = os.environ['TWILIO_TO_NUMBER']
+        client = Client(twilio_account_sid, twilio_auth_token)
+
+
+
     if os.path.isdir(ARGS.model):
         model_dir = ARGS.model
         ARGS.model = os.path.join(model_dir, 'output_graph.pb')
@@ -208,6 +220,9 @@ def main(ARGS):
                 wav_data = bytearray()
             text = stream_context.finishStream()
             print("Recognized: %s" % text)
+            if(ARGS.twilio and text.startswith('remind me')):
+                print("sending twilio reminder: %s" % text)
+                message = client.messages.create(to=twilio_to_number, from_=twilio_from_number, body=text)
             if(len(text)>14):
                 lcd.clear()
                 lcd.write_string("%s" % text)
@@ -217,6 +232,12 @@ def main(ARGS):
                 from pyautogui import typewrite
                 typewrite(text)
             stream_context = model.createStream()
+
+def cleanGPIO():
+    GPIO.cleanup()
+
+atexit.register(cleanGPIO)
+
 
 if __name__ == '__main__':
     DEFAULT_SAMPLE_RATE = 16000
@@ -243,6 +264,8 @@ if __name__ == '__main__':
                         help=f"Input device sample rate. Default: {DEFAULT_SAMPLE_RATE}. Your device may require 44100.")
     parser.add_argument('-k', '--keyboard', action='store_true', 
                         help="Type output through system keyboard")
+    parser.add_argument('-t', '--twilio', action='store_true', 
+                        help="Enable reminders with twilio")
     ARGS = parser.parse_args()
     if ARGS.savewav: os.makedirs(ARGS.savewav, exist_ok=True)
     main(ARGS)

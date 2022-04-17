@@ -1,1 +1,1 @@
-python captionator.py -m ./models/model.tflite -s ./models/large_vocabulary.scorer
+python captionator.py -m ./models/model.tflite -s ./models/large_vocabulary.scorer -t
